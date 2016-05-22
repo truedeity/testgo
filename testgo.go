@@ -25,22 +25,28 @@ func NewUserController(s *mgo.Session) *UserController {
 }
 
 func main() {
-	http.HandleFunc("/", hello)
+	http.HandleFunc("/", index)
 	http.HandleFunc("/userlist", userlist)
 	http.HandleFunc("/saveinfo", saveinfo)
 	http.ListenAndServe(":1233", nil)
 }
 
-func hello(writer http.ResponseWriter, request *http.Request) {
-	dat, _ := ioutil.ReadFile("/home/dan/go/src/github.com/truedeity/testgo2/test.html")
+func index(writer http.ResponseWriter, request *http.Request) {
+	dat, _ := ioutil.ReadFile("/home/dan/go/src/github.com/truedeity/testgo/test.html")
 
 	writer.Write(dat)
 }
 
 func userlist(writer http.ResponseWriter, request *http.Request) {
-	//uc := NewUserController(getSession())
-	//query := uc.session.DB("sampledb1").C("users").Find()
+	var results []User
+	uc := NewUserController(getSession())
+	uc.session.DB("sampledb1").C("users").Find(nil).All(&results)
 
+	uj, _ := json.Marshal(results)
+
+	writer.WriteHeader(201)
+	writer.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(writer, "%s", uj)
 }
 
 func saveinfo(writer http.ResponseWriter, request *http.Request) {
